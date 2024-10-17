@@ -1,3 +1,0 @@
-# flyctl launch added from ami-nodejs\.gitignore
-ami-nodejs\**\.env
-fly.toml
