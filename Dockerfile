@@ -1,39 +1,18 @@
-# syntax = docker/dockerfile:1
+# Используем официальный образ Python
+FROM python:3.9-slim
 
-# Adjust NODE_VERSION as desired
-ARG NODE_VERSION=22.7.0
-FROM node:${NODE_VERSION}-slim as base
-
-LABEL fly_launch_runtime="Node.js"
-
-# Node.js app lives here
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Set production environment
-ENV NODE_ENV="production"
-
-
-# Throw-away build stage to reduce size of final image
-FROM base as build
-
-# Install packages needed to build node modules
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
-
-# Install node modules
-COPY package-lock.json package.json ./
-RUN npm ci
-
-# Copy application code
+# Копируем файлы проекта
 COPY . .
 
+# Устанавливаем зависимости
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Final stage for app image
-FROM base
+# Задаём переменные окружения
+ENV TELEGRAM_TOKEN=$TELEGRAM_TOKEN
+ENV CHAT_ID=$CHAT_ID
 
-# Copy built application
-COPY --from=build /app /app
-
-# Start the server by default, this can be overwritten at runtime
-EXPOSE 3000
-CMD [ "node", "index.js" ]
+# Запускаем приложение
+CMD ["python", "bot.py"]
